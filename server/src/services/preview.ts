@@ -1,6 +1,22 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import * as esbuild from "esbuild";
 import type { SessionFolders } from "../lib/storage.js";
+
+/** 将 TS/JS 片段编译为浏览器可执行的 ESM，供内联脚本使用；失败时回退原文。 */
+export async function compilePreviewScript(source: string): Promise<string> {
+  try {
+    const out = await esbuild.transform(source, {
+      loader: "ts",
+      format: "esm",
+      target: "es2020",
+      platform: "browser"
+    });
+    return out.code;
+  } catch {
+    return source;
+  }
+}
 
 /** 渲染预览页 HTML 模板，并将生成代码以内联脚本形式注入。 */
 function htmlTemplate(gameScriptSource: string): string {
@@ -47,7 +63,8 @@ export async function writePreviewBuild(
   gameScriptSource: string,
   version: number
 ): Promise<string> {
-  const html = htmlTemplate(gameScriptSource);
+  const compiled = await compilePreviewScript(gameScriptSource);
+  const html = htmlTemplate(compiled);
   const filePath = path.resolve(folders.buildDir, "index.html");
   await writeFile(filePath, html, "utf8");
   return filePath;

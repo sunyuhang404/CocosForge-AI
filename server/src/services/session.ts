@@ -39,6 +39,35 @@ export async function setSessionStatus(
   });
 }
 
+const SESSION_TITLE_MAX_LEN = 120;
+
+/** 从用户输入首行生成会话标题（用于列表与顶栏）。 */
+export function deriveSessionTitleFromUserMessage(rawMessage: string): string {
+  const line = rawMessage.split("\n")[0]?.trim() ?? "";
+  if (!line) return "新游戏项目";
+  return line.length > SESSION_TITLE_MAX_LEN ? `${line.slice(0, SESSION_TITLE_MAX_LEN)}…` : line;
+}
+
+/**
+ * 若本次保存后为会话内第一条用户消息，则用用户本条原文首行更新 Session.name。
+ * 返回新标题；未更新时返回 null。
+ */
+export async function updateSessionTitleIfFirstUserMessage(
+  sessionId: string,
+  rawUserMessage: string
+): Promise<string | null> {
+  const userCount = await prisma.message.count({
+    where: { sessionId, role: "user" }
+  });
+  if (userCount !== 1) return null;
+  const name = deriveSessionTitleFromUserMessage(rawUserMessage);
+  await prisma.session.update({
+    where: { id: sessionId },
+    data: { name }
+  });
+  return name;
+}
+
 /** 持久化一条会话消息（用户、助手或系统消息）。 */
 export async function saveMessage(input: {
   sessionId: string;

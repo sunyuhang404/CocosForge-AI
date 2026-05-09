@@ -53,7 +53,7 @@
             <div class="flex items-center gap-2">
               <span class="text-xs text-[#b1b7c4]">◉</span>
               <span class="truncate text-[15px] font-medium">
-                {{ session.name || "新游戏项目" }}
+                {{ displaySessionTitle(session) }}
               </span>
             </div>
             <div class="mt-1 pl-5 text-xs text-[#a0a7b5]">
@@ -86,14 +86,9 @@
       <header
         class="z-20 shrink-0 border-b border-[#e8ebf2] bg-white/95 backdrop-blur"
       >
-        <div class="relative flex h-[65px] w-full items-center px-[20px]">
-          <div class="absolute left-1/2 max-w-[70%] -translate-x-1/2 truncate text-sm font-semibold text-[#111827]">
+        <div class="flex h-[65px] w-full items-center justify-center px-[20px]">
+          <div class="max-w-[70%] truncate text-center text-sm font-semibold text-[#111827]">
             {{ currentSessionTitle }}
-          </div>
-          <div class="ml-auto">
-            <el-tag type="info" effect="plain" round>{{
-              store.statusText
-            }}</el-tag>
           </div>
         </div>
       </header>
@@ -105,6 +100,9 @@
             :messages="store.messages"
             :dynamic-form="store.dynamicForm"
             :loading="store.loading"
+            :status-text="store.statusText"
+            :codegen-progress-percent="store.codegenProgressPercent"
+            :codegen-progress-detail="store.codegenProgressDetail"
             :preview-visible="previewVisible"
             :pending-preview="pendingPreview"
             @send-message="handleSendMessage"
@@ -131,6 +129,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import ChatPanel from "./components/chat/ChatPanel.vue";
 import PreviewPanel from "./components/preview/PreviewPanel.vue";
+import type { SessionItem } from "./types";
 import { useChatStore } from "./stores/chat";
 
 const store = useChatStore();
@@ -165,6 +164,15 @@ const currentSessionTitle = computed(() => {
   }
   return store.currentSession?.name || "新对话";
 });
+
+/** 左侧列表与顶栏标题对齐：当前会话用同一套推导标题，其余会话仍用服务端名称。 */
+function displaySessionTitle(session: SessionItem): string {
+  if (session.id === store.currentSessionId) {
+    return currentSessionTitle.value;
+  }
+  const n = session.name?.trim();
+  return n || "新游戏项目";
+}
 
 async function handleSendMessage(message: string) {
   await store.sendMessage(message);

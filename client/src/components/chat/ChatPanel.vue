@@ -80,6 +80,28 @@
             清空
           </button>
           <button class="tool-btn" type="button">更多</button>
+          <div
+            v-if="props.loading"
+            class="codegen-progress-inline"
+          >
+            <template v-if="props.codegenProgressPercent !== null">
+              <el-progress
+                :percentage="props.codegenProgressPercent"
+                :stroke-width="6"
+                striped
+                striped-flow
+                class="codegen-progress-bar"
+              />
+              <span
+                v-if="props.codegenProgressDetail"
+                class="codegen-progress-meta"
+              >{{ props.codegenProgressDetail }}</span>
+            </template>
+            <span
+              v-else
+              class="codegen-status-fallback"
+            >{{ props.statusText }}</span>
+          </div>
           <button
             class="send-circle"
             type="button"
@@ -100,14 +122,26 @@ import type { MessageItem, DynamicFormSchema } from "../../types";
 import { renderMarkdown } from "../../lib/markdown";
 import DynamicForm from "./DynamicForm.vue";
 
-const props = defineProps<{
-  sessionId: string;
-  messages: MessageItem[];
-  dynamicForm: DynamicFormSchema | null;
-  loading: boolean;
-  previewVisible: boolean;
-  pendingPreview: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    sessionId: string;
+    messages: MessageItem[];
+    dynamicForm: DynamicFormSchema | null;
+    loading: boolean;
+    /** 顶部栏移除后，在尚无 codegen 进度时用于工具条简短状态（如「处理中」） */
+    statusText?: string;
+    /** 与 SSE codegen_progress.percent 对应；null 表示本轮尚未收到进度 */
+    codegenProgressPercent?: number | null;
+    codegenProgressDetail?: string;
+    previewVisible: boolean;
+    pendingPreview: boolean;
+  }>(),
+  {
+    codegenProgressPercent: null,
+    codegenProgressDetail: "",
+    statusText: ""
+  }
+);
 
 const emit = defineEmits<{
   sendMessage: [message: string];
@@ -262,6 +296,36 @@ function onSend() {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+.codegen-progress-inline {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-left: 4px;
+}
+
+.codegen-progress-bar {
+  flex: 1;
+  min-width: 96px;
+  max-width: 220px;
+}
+
+.codegen-progress-meta {
+  flex-shrink: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: #64748b;
+  max-width: 160px;
+}
+
+.codegen-status-fallback {
+  font-size: 12px;
+  color: #64748b;
 }
 
 .tool-icon,

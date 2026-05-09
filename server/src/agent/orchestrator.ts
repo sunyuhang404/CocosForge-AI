@@ -6,12 +6,32 @@ import type { ChatRequestBody, SseEventPayloadMap } from "../types.js";
 import { evaluateGuardrails } from "./chains.js";
 import { plannerSystemPrompt } from "./prompts.js";
 import { retrieveContext } from "../integrations/rag.js";
-import { generateGameCode } from "../services/codegen.js";
+import {
+  generateGameCode,
+  reviewAndRepairGameCode,
+  sanitizeGeneratedGameCode,
+  type GameCodeReviewOutcome
+} from "../services/codegen.js";
 import { getSessionFolders } from "../lib/storage.js";
-import { getNextAssetVersion, saveAsset, saveMessage, setSessionStatus } from "../services/session.js";
+import {
+  getNextAssetVersion,
+  saveAsset,
+  saveMessage,
+  setSessionStatus,
+  updateSessionTitleIfFirstUserMessage
+} from "../services/session.js";
 import { writePlanningDoc, writePreviewBuild, writeSourceCode } from "../services/preview.js";
 
 type Emitter = <K extends keyof SseEventPayloadMap>(event: K, payload: SseEventPayloadMap[K]) => void;
+
+function finalCodeFromReview(sanitized: string, outcome: GameCodeReviewOutcome): string {
+  if (outcome.parseFailed) return sanitized;
+  return outcome.code.trim() ? outcome.code : sanitized;
+}
+
+function shouldRegenerateCode(outcome: GameCodeReviewOutcome): boolean {
+  return outcome.parseFailed || (!outcome.ok && !outcome.code.trim());
+}
 
 const openai = createOpenAI({
   apiKey: config.qwenApiKey,
@@ -40,6 +60,11 @@ export async function runChatWorkflow(request: ChatRequestBody, emit: Emitter): 
     content: userPayload,
     isGameRelated: guardrail.status !== "blocked"
   });
+
+  const renamedTitle = await updateSessionTitleIfFirstUserMessage(request.sessionId, request.message);
+  if (renamedTitle) {
+    emit("session_renamed", { name: renamedTitle });
+  }
 
   if (guardrail.status === "blocked") {
     // 被拦截时直接返回解释文案，不进入后续生成阶段。
@@ -103,27 +128,60 @@ export async function runChatWorkflow(request: ChatRequestBody, emit: Emitter): 
 
   emit("codegen_progress", { stage: "codegen", percent: 60, detail: "开始生成 TypeScript 代码" });
   await setSessionStatus(request.sessionId, "DEVELOPING");
-  // 基于策划案生成业务代码并落盘归档。
-  const code = await generateGameCode({
+
+  let raw = await generateGameCode({
     userMessage: userPayload,
     planningMarkdown
   });
+  let sanitized = sanitizeGeneratedGameCode(raw);
+
+  emit("codegen_progress", { stage: "validate", percent: 68, detail: "AI 校验游戏脚本" });
+  let reviewOutcome = await reviewAndRepairGameCode({
+    userMessage: userPayload,
+    planningMarkdown,
+    code: sanitized
+  });
+  let finalCode = finalCodeFromReview(sanitized, reviewOutcome);
+
+  if (shouldRegenerateCode(reviewOutcome)) {
+    emit("codegen_progress", {
+      stage: "codegen_retry",
+      percent: 72,
+      detail: "校验未通过，重新生成代码"
+    });
+    const priorIssues =
+      reviewOutcome.issues.length > 0
+        ? reviewOutcome.issues
+        : ["请输出完整、可在浏览器内联模块中运行的脚本"];
+    raw = await generateGameCode({
+      userMessage: userPayload,
+      planningMarkdown,
+      priorIssues
+    });
+    sanitized = sanitizeGeneratedGameCode(raw);
+    reviewOutcome = await reviewAndRepairGameCode({
+      userMessage: userPayload,
+      planningMarkdown,
+      code: sanitized
+    });
+    finalCode = finalCodeFromReview(sanitized, reviewOutcome);
+  }
 
   const codeVersion = await getNextAssetVersion(request.sessionId, "CODE");
-  const codeFilePath = await writeSourceCode(folders.srcDir, code, codeVersion);
+  const codeFilePath = await writeSourceCode(folders.srcDir, finalCode, codeVersion);
   await saveAsset({
     sessionId: request.sessionId,
     type: "CODE",
     fileName: path.basename(codeFilePath),
     filePath: codeFilePath,
-    content: code,
+    content: finalCode,
     version: codeVersion
   });
 
   emit("codegen_progress", { stage: "build", percent: 85, detail: "生成预览页面" });
   // 生成预览产物并保存构建资产版本。
   const buildVersion = await getNextAssetVersion(request.sessionId, "BUILD");
-  const buildPath = await writePreviewBuild(folders, code, buildVersion);
+  const buildPath = await writePreviewBuild(folders, finalCode, buildVersion);
   await saveAsset({
     sessionId: request.sessionId,
     type: "BUILD",

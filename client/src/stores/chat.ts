@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { DynamicFormSchema, MessageItem, SessionItem } from "../types";
+import { codegenProgressLabel } from "../lib/codegenLabels";
 import { createSession, fetchSessionMessages, fetchSessions } from "../services/api";
 import { streamChat } from "../services/sse";
 
@@ -12,6 +13,10 @@ export const useChatStore = defineStore("chat", () => {
   const dynamicForm = ref<DynamicFormSchema | null>(null);
   const previewUrl = ref("");
   const statusText = ref("就绪");
+  /** 后端 `codegen_progress.percent`，null 表示本轮尚未收到进度事件 */
+  const codegenProgressPercent = ref<number | null>(null);
+  /** 当前阶段说明（优先使用服务端 `detail`） */
+  const codegenProgressDetail = ref("");
   const loading = ref(false);
 
   const currentSession = computed(() =>
@@ -33,6 +38,8 @@ export const useChatStore = defineStore("chat", () => {
     messages.value = [];
     planningText.value = "";
     previewUrl.value = "";
+    codegenProgressPercent.value = null;
+    codegenProgressDetail.value = "";
   }
 
   async function switchSession(sessionId: string) {
@@ -40,6 +47,8 @@ export const useChatStore = defineStore("chat", () => {
     messages.value = [];
     planningText.value = "";
     dynamicForm.value = null;
+    codegenProgressPercent.value = null;
+    codegenProgressDetail.value = "";
     await loadMessages(sessionId);
   }
 
@@ -53,6 +62,8 @@ export const useChatStore = defineStore("chat", () => {
     }
     loading.value = true;
     statusText.value = "处理中";
+    codegenProgressPercent.value = null;
+    codegenProgressDetail.value = "";
     messages.value.push({ role: "user", content: message });
     let assistantBuffer = "";
     let assistantMessageIndex = -1;
@@ -61,6 +72,14 @@ export const useChatStore = defineStore("chat", () => {
       { sessionId: currentSessionId.value, message, formAnswers },
       {
         onEvent: (event, payload) => {
+          if (event === "session_renamed") {
+            const { name } = payload as { name?: string };
+            if (name && currentSessionId.value) {
+              sessions.value = sessions.value.map((s) =>
+                s.id === currentSessionId.value ? { ...s, name } : s
+              );
+            }
+          }
           if (event === "planning_chunk") {
             const chunk = (payload as { chunk?: string }).chunk ?? "";
             assistantBuffer += chunk;
@@ -80,8 +99,14 @@ export const useChatStore = defineStore("chat", () => {
             statusText.value = "预览可用";
           }
           if (event === "codegen_progress") {
-            const p = payload as { stage?: string; percent?: number };
-            statusText.value = `${p.stage ?? "running"} ${p.percent ?? 0}%`;
+            const p = payload as { stage?: string; percent?: number; detail?: string };
+            const pct = typeof p.percent === "number" ? Math.min(100, Math.max(0, p.percent)) : null;
+            if (pct !== null) {
+              codegenProgressPercent.value = pct;
+            }
+            const label = codegenProgressLabel(p.stage, p.detail);
+            codegenProgressDetail.value = label;
+            statusText.value = pct !== null ? `${label} · ${pct}%` : label;
           }
           if (event === "error") {
             statusText.value = (payload as { message?: string }).message ?? "发生错误";
@@ -97,6 +122,8 @@ export const useChatStore = defineStore("chat", () => {
       messages.value.push({ role: "assistant", content: assistantBuffer });
     }
     loading.value = false;
+    codegenProgressPercent.value = null;
+    codegenProgressDetail.value = "";
     if (statusText.value === "处理中") {
       statusText.value = "完成";
     }
@@ -107,6 +134,8 @@ export const useChatStore = defineStore("chat", () => {
     planningText.value = "";
     dynamicForm.value = null;
     previewUrl.value = "";
+    codegenProgressPercent.value = null;
+    codegenProgressDetail.value = "";
     statusText.value = "已重置";
   }
 
@@ -119,6 +148,8 @@ export const useChatStore = defineStore("chat", () => {
     dynamicForm,
     previewUrl,
     statusText,
+    codegenProgressPercent,
+    codegenProgressDetail,
     loading,
     refreshSessions,
     createNewSession,

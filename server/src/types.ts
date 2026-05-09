@@ -43,6 +43,8 @@ export type SseEventPayloadMap = {
   question_form: DynamicFormSchema;
   planning_chunk: { chunk: string };
   codegen_progress: { stage: string; percent: number; detail?: string };
+  /** 首条用户消息落库后会话标题已在数据库更新 */
+  session_renamed: { name: string };
   preview_ready: { previewUrl: string; version: number };
   error: { message: string };
 };
