@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CocosForge Preview</title>
+    <style>
+      body { margin: 0; background: #0f172a; color: #e2e8f0; font-family: Arial, sans-serif; }
+      #app { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+      canvas { border: 1px solid #334155; background: #020617; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+```typescript
+// 主游戏逻辑脚本
+class Game {
+    private canvas: HTMLCanvasElement;
+    private ctx: CanvasRenderingContext2D;
+    private player: Player;
+    private enemies: Enemy[];
+    private keys: { [key: string]: boolean };
+    private score: number;
+    private level: number;
+    private isGameOver: boolean;
+
+    constructor() {
+        this.canvas = <HTMLCanvasElement>document.getElementById('gameCanvas');
+        this.ctx = this.canvas.getContext('2d');
+        this.player = new Player();
+        this.enemies = [];
+        this.keys = {};
+        this.score = 0;
+        this.level = 1;
+        this.isGameOver = false;
+
+        this.init();
+    }
+
+    private init() {
+        this.canvas.width = window.innerWidth * 0.8;
+        this.canvas.height = window.innerHeight * 0.8;
+        this.setupEventListeners();
+        this.loadLevel();
+        this.gameLoop();
+    }
+
+    private setupEventListeners() {
+        document.addEventListener('keydown', (e) => {
+            this.keys[e.key] = true;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            this.keys[e.key] = false;
+        });
+    }
+
+    private loadLevel() {
+        // 根据当前关卡加载敌人和资源
+        for (let i = 0; i < this.level * 5; i++) {
+            const enemy = new Enemy();
+            this.enemies.push(enemy);
+        }
+    }
+
+    private gameLoop() {
+        if (this.isGameOver) return;
+
+        this.update();
+        this.render();
+
+        requestAnimationFrame(() => this.gameLoop());
+    }
+
+    private update() {
+        // 更新玩家位置
+        if (this.keys['ArrowLeft']) {
+            this.player.move(-5, 0);
+        }
+        if (this.keys['ArrowRight']) {
+            this.player.move(5, 0);
+        }
+        if (this.keys['ArrowUp']) {
+            this.player.jump();
+        }
+        if (this.keys[' ']) {
+            this.player.attack();
+        }
+
+        // 更新敌人位置
+        for (const enemy of this.enemies) {
+            enemy.update();
+        }
+
+        // 检查碰撞
+        for (const enemy of this.enemies) {
+            if (this.player.collidesWith(enemy)) {
+                this.handleCollision(enemy);
+            }
+        }
+
+        // 检查是否过关
+        if (this.enemies.length === 0) {
+            this.level++;
+            this.loadLevel();
+        }
+    }
+
+    private render() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+        // 绘制玩家
+        this.player.render(this.ctx);
+
+        // 绘制敌人
+        for (const enemy of this.enemies) {
+            enemy.render(this.ctx);
+        }
+
+        // 绘制得分
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '24px Arial';
+        this.ctx.fillText(`Score: ${this.score}`, 10, 30);
+        this.ctx.fillText(`Level: ${this.level}`, 10, 60);
+    }
+
+    private handleCollision(enemy: Enemy) {
+        // 处理碰撞逻辑
+        if (this.player.isAttacking) {
+            this.enemies = this.enemies.filter(e => e !== enemy);
+            this.score += 10;
+        } else {
+            this.isGameOver = true;
+            alert('Game Over!');
+        }
+    }
+}
+
+// 玩家类
+class Player {
+    public x: number;
+    public y: number;
+    public width: number;
+    public height: number;
+    public speed: number;
+    public isJumping: boolean;
+    public isAttacking: boolean;
+
+    constructor() {
+        this.x = 100;
+        this.y = 100;
+        this.width = 50;
+        this.height = 50;
+        this.speed = 5;
+        this.isJumping = false;
+        this.isAttacking = false;
+    }
+
+    public move(dx: number, dy: number) {
+        this.x += dx;
+        this.y += dy;
+    }
+
+    public jump() {
+        if (!this.isJumping) {
+            this.y -= 10;
+            this.isJumping = true;
+        }
+    }
+
+    public attack() {
+        this.isAttacking = true;
+        setTimeout(() => {
+            this.isAttacking = false;
+        }, 100);
+    }
+
+    public render(ctx: CanvasRenderingContext2D) {
+        ctx.fillStyle = 'blue';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+
+    public collidesWith(enemy: Enemy): boolean {
+        return !(
+            this.x > enemy.x + enemy.width ||
+            this.x + this.width < enemy.x ||
+            this.y > enemy.y + enemy.height ||
+            this.y + this.height < enemy.y
+        );
+    }
+}
+
+// 敌人类
+class Enemy {
+    public x: number;
+    public y: number;
+    public width: number;
+    public height: number;
+    public speed: number;
+
+    constructor() {
+        this.x = Math.random() * (window.innerWidth * 0.8 - 50);
+        this.y = Math.random() * (window.innerHeight * 0.8 - 50);
+        this.width = 50;
+        this.height = 50;
+        this.speed = 2;
+    }
+
+    public update() {
+        this.x += this.speed;
+        if (this.x < 0 || this.x > window.innerWidth * 0.8 - this.width) {
+            this.speed = -this.speed;
+        }
+    }
+
+    public render(ctx: CanvasRenderingContext2D) {
+        ctx.fillStyle = 'red';
+        ctx.fillRect(this.x, this.y, this.width, this.height);
+    }
+}
+
+// 初始化游戏
+window.onload = () => {
+    new Game();
+};
+```
+    </script>
+  </body>
+</html>

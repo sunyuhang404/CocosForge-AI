@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --bg-page: #ffffff;
+  --bg-card: #ffffff;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-soft: #e5e7eb;
+  --brand: #4f7cff;
+  --brand-soft: #e9efff;
+  --shadow-soft: 0 8px 30px rgba(31, 41, 55, 0.06);
+}
+
+body {
+  margin: 0;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--bg-page);
+  color: var(--text-primary);
+}
+
+#app {
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d8deea;
+  border-radius: 999px;
+  border: 2px solid #f6f8fc;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}

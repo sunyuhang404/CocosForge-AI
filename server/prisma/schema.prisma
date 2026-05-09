@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum SessionStatus {
+  PLANNING
+  DEVELOPING
+  DONE
+}
+
+enum MessageRole {
+  user
+  assistant
+  system
+}
+
+enum AssetType {
+  PLAN
+  CODE
+  IMAGE
+  BUILD
+}
+
+model Session {
+  id        String        @id @default(uuid())
+  name      String        @default("新游戏项目")
+  status    SessionStatus @default(PLANNING)
+  rootDir   String
+  messages  Message[]
+  assets    GameAsset[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Message {
+  id            String      @id @default(uuid())
+  sessionId     String
+  session       Session     @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  role          MessageRole
+  content       String      @db.Text
+  isGameRelated Boolean?
+  createdAt     DateTime    @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+model GameAsset {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  type      AssetType
+  fileName  String
+  filePath  String
+  content   String?  @db.Text
+  version   Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@index([sessionId, type, createdAt])
+}
