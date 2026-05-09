@@ -5,7 +5,11 @@
       <span class="text-xs text-[#9ca3af]">共 {{ messageCount }} 条</span>
     </div>
 
-    <div class="min-h-0 flex-1 space-y-3 overflow-y-auto pb-3 pr-1">
+    <div
+      ref="messagesContainerRef"
+      class="min-h-0 flex-1 space-y-3 overflow-y-auto pb-3 pr-1"
+      @scroll="onMessagesScroll"
+    >
       <div
         v-for="(message, index) in props.messages"
         :key="index"
@@ -91,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, nextTick, onMounted, ref, watch } from "vue";
 import type { MessageItem, DynamicFormSchema } from "../../types";
 import { renderMarkdown } from "../../lib/markdown";
 import DynamicForm from "./DynamicForm.vue";
@@ -113,6 +117,80 @@ const emit = defineEmits<{
 
 const input = ref("");
 const messageCount = computed(() => props.messages.length);
+const messagesContainerRef = ref<HTMLElement | null>(null);
+const shouldAutoScroll = ref(true);
+const isProgrammaticScroll = ref(false);
+const autoScrollThreshold = 24;
+
+function getDistanceToBottom(element: HTMLElement): number {
+  return element.scrollHeight - element.clientHeight - element.scrollTop;
+}
+
+function isNearBottom(element: HTMLElement): boolean {
+  return getDistanceToBottom(element) <= autoScrollThreshold;
+}
+
+function onMessagesScroll() {
+  if (isProgrammaticScroll.value) {
+    return;
+  }
+  const element = messagesContainerRef.value;
+  if (!element) {
+    return;
+  }
+  shouldAutoScroll.value = isNearBottom(element);
+}
+
+async function scrollToBottom(force = false) {
+  await nextTick();
+  const element = messagesContainerRef.value;
+  if (!element || (!force && !shouldAutoScroll.value)) {
+    return;
+  }
+
+  isProgrammaticScroll.value = true;
+  element.scrollTop = element.scrollHeight;
+  shouldAutoScroll.value = true;
+  requestAnimationFrame(() => {
+    isProgrammaticScroll.value = false;
+  });
+}
+
+watch(
+  () => props.messages.map((message) => `${message.role}:${message.content}`).join("\n"),
+  () => {
+    if (shouldAutoScroll.value) {
+      void scrollToBottom();
+    }
+  }
+);
+
+watch(
+  () => props.dynamicForm,
+  () => {
+    if (shouldAutoScroll.value) {
+      void scrollToBottom();
+    }
+  }
+);
+
+watch(
+  () => props.loading,
+  (isLoading) => {
+    if (!isLoading) {
+      return;
+    }
+    const element = messagesContainerRef.value;
+    shouldAutoScroll.value = element ? isNearBottom(element) : true;
+    if (shouldAutoScroll.value) {
+      void scrollToBottom(true);
+    }
+  }
+);
+
+onMounted(() => {
+  void scrollToBottom(true);
+});
 
 function renderAssistantMarkdown(content: string): string {
   return renderMarkdown(content);
