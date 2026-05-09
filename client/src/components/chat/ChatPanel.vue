@@ -101,6 +101,7 @@ import { renderMarkdown } from "../../lib/markdown";
 import DynamicForm from "./DynamicForm.vue";
 
 const props = defineProps<{
+  sessionId: string;
   messages: MessageItem[];
   dynamicForm: DynamicFormSchema | null;
   loading: boolean;
@@ -155,6 +156,32 @@ async function scrollToBottom(force = false) {
     isProgrammaticScroll.value = false;
   });
 }
+
+watch(
+  () => props.sessionId,
+  (newId, oldId) => {
+    if (oldId === undefined) {
+      return;
+    }
+    if (newId === oldId) {
+      return;
+    }
+    shouldAutoScroll.value = true;
+    if (props.messages.length > 0) {
+      void scrollToBottom(true);
+    }
+  },
+  { flush: "post" },
+);
+
+watch(
+  () => props.messages.length,
+  (n, o) => {
+    if (o !== undefined && o > 0 && n === 0) {
+      shouldAutoScroll.value = true;
+    }
+  },
+);
 
 watch(
   () => props.messages.map((message) => `${message.role}:${message.content}`).join("\n"),

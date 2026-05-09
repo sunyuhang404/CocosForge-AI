@@ -101,6 +101,7 @@
       <div class="min-h-0 flex-1 overflow-hidden px-[20px] py-[20px]">
         <div class="h-full min-w-0">
           <ChatPanel
+            :session-id="store.currentSessionId"
             :messages="store.messages"
             :dynamic-form="store.dynamicForm"
             :loading="store.loading"

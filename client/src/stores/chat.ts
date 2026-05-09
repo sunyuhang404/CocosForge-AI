@@ -37,6 +37,7 @@ export const useChatStore = defineStore("chat", () => {
 
   async function switchSession(sessionId: string) {
     currentSessionId.value = sessionId;
+    messages.value = [];
     planningText.value = "";
     dynamicForm.value = null;
     await loadMessages(sessionId);
