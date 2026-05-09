@@ -25,7 +25,15 @@
           >
             {{ message.role === "user" ? "你" : "助手" }}
           </div>
-          <pre class="m-0 whitespace-pre-wrap font-sans">{{ message.content }}</pre>
+          <pre
+            v-if="message.role === 'user'"
+            class="m-0 whitespace-pre-wrap font-sans"
+          >{{ message.content }}</pre>
+          <div
+            v-else
+            class="markdown-content"
+            v-html="renderAssistantMarkdown(message.content)"
+          />
         </div>
       </div>
 
@@ -85,6 +93,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import type { MessageItem, DynamicFormSchema } from "../../types";
+import { renderMarkdown } from "../../lib/markdown";
 import DynamicForm from "./DynamicForm.vue";
 
 const props = defineProps<{
@@ -104,6 +113,10 @@ const emit = defineEmits<{
 
 const input = ref("");
 const messageCount = computed(() => props.messages.length);
+
+function renderAssistantMarkdown(content: string): string {
+  return renderMarkdown(content);
+}
 
 function onSend() {
   const text = input.value.trim();
@@ -205,5 +218,89 @@ function onSend() {
 .send-circle:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.markdown-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #111827;
+  word-break: break-word;
+}
+
+:deep(.markdown-content > *:first-child) {
+  margin-top: 0;
+}
+
+:deep(.markdown-content > *:last-child) {
+  margin-bottom: 0;
+}
+
+:deep(.markdown-content p) {
+  margin: 0.5em 0;
+}
+
+:deep(.markdown-content h1),
+:deep(.markdown-content h2),
+:deep(.markdown-content h3),
+:deep(.markdown-content h4) {
+  margin: 0.75em 0 0.4em;
+  line-height: 1.35;
+}
+
+:deep(.markdown-content h1) {
+  font-size: 1.35em;
+}
+
+:deep(.markdown-content h2) {
+  font-size: 1.2em;
+}
+
+:deep(.markdown-content h3) {
+  font-size: 1.08em;
+}
+
+:deep(.markdown-content ul),
+:deep(.markdown-content ol) {
+  margin: 0.5em 0;
+  padding-left: 1.3em;
+}
+
+:deep(.markdown-content li) {
+  margin: 0.2em 0;
+}
+
+:deep(.markdown-content a) {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+:deep(.markdown-content blockquote) {
+  margin: 0.6em 0;
+  padding-left: 0.8em;
+  border-left: 3px solid #cbd5e1;
+  color: #475569;
+}
+
+:deep(.markdown-content pre) {
+  margin: 0.7em 0;
+  padding: 0.75em 0.9em;
+  border-radius: 8px;
+  background: #0f172a;
+  color: #e2e8f0;
+  overflow-x: auto;
+}
+
+:deep(.markdown-content code) {
+  border-radius: 4px;
+  background: #e5e7eb;
+  padding: 0.1em 0.3em;
+  font-size: 0.92em;
+}
+
+:deep(.markdown-content pre code) {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: 0.95em;
 }
 </style>
