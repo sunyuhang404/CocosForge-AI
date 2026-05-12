@@ -1,4 +1,4 @@
-# CocosForge AI 项目复刻指南
+# GameForge AI 项目复刻指南
 
 本文档用于把当前仓库的实现完整交付给第三方。目标是：把这份文档发给别人，别人用 AI 读取后，能复刻出同等能力与相同结构的项目。
 
@@ -8,7 +8,7 @@
 
 ## 1. 项目目标与边界
 
-`CocosForge AI` 是一个从自然语言到 2D 网页游戏产物的 Agent 应用，覆盖以下闭环：
+`GameForge AI` 是一个从自然语言到 2D 网页游戏产物的 Agent 应用，覆盖以下闭环：
 
 1. 多会话管理（会话创建/切换/历史记录）
 2. 输入 Guardrails（游戏相关性、信息充分性）
@@ -26,7 +26,8 @@
 
 - Workspace 根：`package.json`
 - 子项目：
-  - `server/`
+  - `gameforge/`
+  - `gameforge-agent/`
   - `client/`
 
 ### 2.2 后端
@@ -63,7 +64,8 @@ volta run npm run dev
 ```text
 /
 ├─ client/                      # 前端 UI 与状态管理
-├─ server/                      # 后端 API、Agent 编排、RAG、持久化
+├─ gameforge/                   # Spring Boot（与 Agent 配置对齐）
+├─ gameforge-agent/             # Agent 服务（Koa：API、编排、RAG、持久化）
 ├─ storage/                     # 会话产物根目录
 │  └─ {sessionId}/
 │     ├─ plan/                  # 策划文档
@@ -77,7 +79,7 @@ volta run npm run dev
 
 ## 4. 数据库模型（Prisma）
 
-文件：`server/prisma/schema.prisma`
+文件：`gameforge-agent/prisma/schema.prisma`
 
 ### 4.1 Session
 
@@ -113,7 +115,7 @@ volta run npm run dev
 
 ### 5.1 入口与中间件
 
-文件：`server/src/index.ts`
+文件：`gameforge-agent/src/index.ts`
 
 - 启动 Koa
 - 注册 CORS / bodyParser / 路由
@@ -125,7 +127,7 @@ volta run npm run dev
 
 ### 5.2 会话接口
 
-文件：`server/src/routes/sessions.ts`
+文件：`gameforge-agent/src/routes/sessions.ts`
 
 - `POST /api/sessions`：创建会话并初始化目录
 - `GET /api/sessions`：会话列表
@@ -134,7 +136,7 @@ volta run npm run dev
 
 ### 5.3 主流程接口（SSE）
 
-文件：`server/src/routes/chat.ts`
+文件：`gameforge-agent/src/routes/chat.ts`
 
 - `POST /api/chat/stream`
 - 入参：`sessionId`, `message`, `formAnswers?`
@@ -146,7 +148,7 @@ volta run npm run dev
 
 ### 5.4 Agent 编排
 
-文件：`server/src/agent/orchestrator.ts`
+文件：`gameforge-agent/src/agent/orchestrator.ts`
 
 状态机概览：
 
@@ -160,16 +162,16 @@ volta run npm run dev
 
 关键文件：
 
-- `server/src/services/ingest.ts`
-- `server/src/integrations/rag.ts`
-- `server/src/integrations/embeddings.ts`
-- `server/src/services/sources.ts`
+- `gameforge-agent/src/services/ingest.ts`
+- `gameforge-agent/src/integrations/rag.ts`
+- `gameforge-agent/src/integrations/embeddings.ts`
+- `gameforge-agent/src/services/sources.ts`
 
 机制：
 
 - 从 `knowledge/` + `REQUIREMENT.md` 读取文本
 - 切分后走 DashScope embedding
-- 构建并持久化 HNSWLib 索引到 `server/.data/vector`
+- 构建并持久化 HNSWLib 索引到 `gameforge-agent/.data/vector`
 - 启动时增量检查，`npm run ingest` 可手动重建
 
 ---
@@ -216,7 +218,7 @@ volta run npm run dev
 
 ## 7. SSE 事件契约
 
-后端定义见 `server/src/types.ts`：
+后端定义见 `gameforge-agent/src/types.ts`：
 
 - `guardrail_result`
 - `question_form`
@@ -263,10 +265,10 @@ volta run npm run dev
 npm install
 
 # 2) 生成 Prisma Client
-npm run prisma:generate -w server
+npm run prisma:generate -w gameforge-agent
 
 # 3) 推送数据库 schema
-npm run prisma:push -w server
+npm run prisma:push -w gameforge-agent
 
 # 4) 构建/增量更新向量索引
 npm run ingest
@@ -305,10 +307,10 @@ volta run npm run dev
 
 ### 11.2 `.env` 路径统一问题
 
-- 脚本在 `server` 目录执行时，容易读不到根目录 `.env`
+- 脚本在 `gameforge-agent` 目录执行时，容易读不到根目录 `.env`
 - 已通过脚本与配置双重方式解决：
   - Prisma 脚本显式 `dotenv -e ../.env -- ...`
-  - `server/src/config.ts` 启动时优先读取根 `.env`
+  - `gameforge-agent/src/config.ts` 启动时优先读取根 `.env`
 
 ### 11.3 Node 版本兼容
 

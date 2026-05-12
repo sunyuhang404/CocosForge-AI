@@ -18,7 +18,7 @@ ports: - "5432:5432"
 environment:
 POSTGRES_USER: admin
 POSTGRES_PASSWORD: "your_password"
-POSTGRES_DB: cocos_forge
+POSTGRES_DB: game_forge
 TZ: Asia/Shanghai
 volumes: - ./postgres/data:/var/lib/postgresql/data
 networks: - store-net

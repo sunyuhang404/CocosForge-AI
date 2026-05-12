@@ -1,14 +1,14 @@
 太棒了，追求技术的前沿性是程序员的浪漫。既然要“新颖”，我们就不只是简单地调用 API，而是引入 **AI Agent 智能体架构**、**中后台流式渲染**以及**现代化的工程化方案**。
 
-这是为你重新深度打磨的 **CocosForge AI - 极客版** 项目文档。
+这是为你重新深度打磨的 **GameForge AI - 极客版** 项目文档。
 
 ---
 
-# 项目需求文档：CocosForge AI (Ultimate Edition)
+# 项目需求文档：GameForge AI (Ultimate Edition)
 
 ## 1. 项目定义
 
-**CocosForge AI** 是一个集成了 **LLM 意图识别、RAG（检索增强生成）与自动化构建流**的 AI Agent 服务。它通过通义千问大模型，实现从“自然语言需求”到“2D 网页游戏”的一键闭环。
+**GameForge AI** 是一个集成了 **LLM 意图识别、RAG（检索增强生成）与自动化构建流**的 AI Agent 服务。它通过通义千问大模型，实现从“自然语言需求”到“2D 网页游戏”的一键闭环。
 
 ## 2. 前沿技术栈选型
 
@@ -79,7 +79,7 @@
 
 ## 6. 项目起名建议
 
-1. **CocosForge AI** (硬核、锻造感) —— **推荐**
+1. **GameForge AI** (硬核、锻造感) —— **推荐**
 2. **QwenGame Engine** (强调千问内核)
 3. **SpriteMind** (精灵之思，适合 2D 游戏)
 4. **AetherCode 2D** (以太代码)

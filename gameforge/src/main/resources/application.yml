@@ -1,0 +1,64 @@
+# 与 gameforge-agent/src/config.ts 对齐；引入 JDBC + Redis + RocketMQ。
+# JDBC 使用 POSTGRES_*（与 Node 一致）；也可用 SPRING_DATASOURCE_* 覆盖标准属性。
+# 启动时：com.gameforge.autoconfigure.PostgresDatabaseBootstrapAutoConfiguration（早于 DataSource）通过 @Value 注入 JDBC 配置并自动 CREATE DATABASE；表结构由 Flyway（classpath:db/migration，构建时从 init_schema.sql 复制）。
+# 跳过自动建库：gameforge.database.skip-auto-create-database=true（或 GAMEFORGE_SKIP_AUTO_CREATE_DB=true）。
+# Node 使用 PORT；Spring Boot 使用 SERVER_PORT（默认 8080）。
+
+spring:
+  config:
+    import: classpath:config.properties
+  application:
+    name: gameforge
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+  datasource:
+    url: jdbc:postgresql://${POSTGRES_HOST:10.5.32.22}:${POSTGRES_PORT:5432}/${POSTGRES_DB:game_forge}
+    username: ${POSTGRES_USER:admin}
+    password: ${POSTGRES_PASSWORD:your_password}
+    hikari:
+      connection-test-query: SELECT 1
+  sql:
+    init:
+      mode: never
+  data:
+    redis:
+      host: ${REDIS_HOST:10.5.32.22}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      database: ${REDIS_DB:0}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+rocketmq:
+  name-server: ${ROCKETMQ_NAME_SERVER:127.0.0.1:9876}
+  producer:
+    group: ${ROCKETMQ_PRODUCER_GROUP:gameforge-producer}
+
+gameforge:
+  database:
+    skip-auto-create-database: ${GAMEFORGE_SKIP_AUTO_CREATE_DB:false}
+    maintenance-database: ${POSTGRES_MAINTENANCE_DB:postgres}
+  client-origin: ${CLIENT_ORIGIN:http://localhost:5173}
+  tz: ${TZ:Asia/Shanghai}
+  database-url: ${DATABASE_URL:postgresql://admin:your_password@10.5.32.22:5432/game_forge}
+  qwen:
+    api-key: ${QWEN_API_KEY:}
+    base-url: ${QWEN_BASE_URL:https://dashscope.aliyuncs.com/compatible-mode/v1}
+    model: ${QWEN_MODEL:qwen-max}
+    embedding-model: ${QWEN_EMBEDDING_MODEL:text-embedding-v3}
+  chroma:
+    host: ${CHROMA_HOST:10.5.32.22}
+    port: ${CHROMA_PORT:8000}
+    collection: ${CHROMA_COLLECTION:gameforge_knowledge}
+  rag:
+    top-k: ${RAG_TOP_K:4}
+    vector-store-dir: ${RAG_VECTOR_DIR:../gameforge-agent/.data/vector}
+    knowledge-dir: ${KNOWLEDGE_DIR:../knowledge}
+    chunk-size: 800
+    chunk-overlap: 120
+  storage-dir: ${STORAGE_DIR:../storage}
+  official-docs-url: ${OFFICIAL_DOCS_URL:}
+  preview-base-url: ${PREVIEW_BASE_URL:http://localhost:3000/preview}

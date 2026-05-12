@@ -6,6 +6,7 @@ export type SessionItem = {
   status: SessionStatus;
   rootDir: string;
   createdAt: string;
+  userId?: string;
 };
 
 export type MessageItem = {

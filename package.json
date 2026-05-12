@@ -1,16 +1,16 @@
 {
-  "name": "cocosforge-ai",
+  "name": "gameforge-ai",
   "private": true,
   "version": "0.1.0",
   "workspaces": [
-    "server",
+    "gameforge-agent",
     "client"
   ],
   "scripts": {
-    "dev": "concurrently -n server,client -c blue,green \"npm run dev -w server\" \"npm run dev -w client\"",
-    "build": "npm run build -w server && npm run build -w client",
-    "lint": "npm run lint -w server && npm run lint -w client",
-    "ingest": "npm run ingest -w server"
+    "dev": "concurrently -n agent,client -c blue,green \"npm run dev -w gameforge-agent\" \"npm run dev -w client\"",
+    "build": "npm run build -w gameforge-agent && npm run build -w client",
+    "lint": "npm run lint -w gameforge-agent && npm run lint -w client",
+    "ingest": "npm run ingest -w gameforge-agent"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"

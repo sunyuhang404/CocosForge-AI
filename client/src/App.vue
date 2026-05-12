@@ -8,10 +8,10 @@
           <div
             class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-[#5b7cfa] to-[#8d9fff] text-sm font-semibold text-white"
           >
-            C
+            G
           </div>
           <span class="text-sm font-semibold text-[#111827]"
-            >CocosForge AI</span
+            >GameForge AI</span
           >
         </div>
       </div>
