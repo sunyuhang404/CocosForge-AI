@@ -1,4 +1,4 @@
-import "dotenv/config";
+import { config } from "./config.js";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import cors from "@koa/cors";
@@ -6,7 +6,6 @@ import Router from "@koa/router";
 import bodyParser from "koa-bodyparser";
 import Koa from "koa";
 import mime from "mime-types";
-import { config } from "./config.js";
 import { ensureStorageRoot, getSessionFolders } from "./lib/storage.js";
 import { prisma } from "./lib/prisma.js";
 import { sessionsRouter } from "./routes/sessions.js";
@@ -33,7 +32,7 @@ function registerMiddleware(middleware: unknown): void {
 
 registerMiddleware(
   corsMiddlewareFactory({
-    origin: config.clientOrigin
+    origin: config.gameforgeClientOrigin
   })
 );
 registerMiddleware(bodyParserMiddlewareFactory());

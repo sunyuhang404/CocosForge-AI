@@ -22,13 +22,13 @@
 
 ## 2. 技术栈与版本约束
 
-### 2.1 Monorepo
+### 2.1 仓库布局
 
-- Workspace 根：`package.json`
-- 子项目：
-  - `gameforge/`
+- Node 依赖各自独立：`gameforge-client/package.json`、`gameforge-agent/package.json`（分别在对应目录安装依赖）
+- 其他目录：
+  - `gameforge/`（Spring Boot）
   - `gameforge-agent/`
-  - `client/`
+  - `gameforge-client/`
 
 ### 2.2 后端
 
@@ -46,16 +46,19 @@
 
 ### 2.4 Node 固定版本（必须）
 
-根 `package.json` 已固定：
+`gameforge-client/package.json` 与 `gameforge-agent/package.json` 中已用 Volta 固定：
 
 - Node: `20.20.2`
 - npm: `10.9.8`
 
-如果本机默认 Node 非 20，建议用：
+如果本机默认 Node 非 20，可在对应子目录下用 Volta 执行脚本，例如：
 
 ```powershell
+cd gameforge-agent
 volta run npm run dev
 ```
+
+前端同理先 `cd gameforge-client` 再 `volta run npm run dev`。
 
 ---
 
@@ -63,7 +66,7 @@ volta run npm run dev
 
 ```text
 /
-├─ client/                      # 前端 UI 与状态管理
+├─ gameforge-client/            # 前端 UI 与状态管理
 ├─ gameforge/                   # Spring Boot（与 Agent 配置对齐）
 ├─ gameforge-agent/             # Agent 服务（Koa：API、编排、RAG、持久化）
 ├─ storage/                     # 会话产物根目录
@@ -172,7 +175,7 @@ volta run npm run dev
 - 从 `knowledge/` + `REQUIREMENT.md` 读取文本
 - 切分后走 DashScope embedding
 - 构建并持久化 HNSWLib 索引到 `gameforge-agent/.data/vector`
-- 启动时增量检查，`npm run ingest` 可手动重建
+- 启动时增量检查；在 `gameforge-agent` 目录执行 `npm run ingest` 可手动重建
 
 ---
 
@@ -180,7 +183,7 @@ volta run npm run dev
 
 ### 6.1 布局
 
-文件：`client/src/App.vue`
+文件：`gameforge-client/src/App.vue`
 
 - 整体两栏：
   - 左栏：会话侧边栏（顶部品牌、新对话、历史列表、底部用户区）
@@ -191,7 +194,7 @@ volta run npm run dev
 
 ### 6.2 聊天区与输入区
 
-文件：`client/src/components/chat/ChatPanel.vue`
+文件：`gameforge-client/src/components/chat/ChatPanel.vue`
 
 - 消息流显示 + 动态表单渲染
 - 底部输入区采用豆包风输入组件样式
@@ -200,7 +203,7 @@ volta run npm run dev
 
 ### 6.3 状态管理
 
-文件：`client/src/stores/chat.ts`
+文件：`gameforge-client/src/stores/chat.ts`
 
 - 管理 `sessions/currentSession/messages/dynamicForm/previewUrl/status/loading`
 - `createNewSession/switchSession/sendMessage`
@@ -208,7 +211,7 @@ volta run npm run dev
 
 ### 6.4 SSE 客户端
 
-文件：`client/src/services/sse.ts`
+文件：`gameforge-client/src/services/sse.ts`
 
 - 基于 `fetch` + `ReadableStream`
 - 按 `event:` / `data:` 解析块消息
@@ -238,7 +241,7 @@ volta run npm run dev
 
 ## 8. 环境变量与配置
 
-参考：`.env.example`
+模板：在 `gameforge-agent` 目录自建 `.env`，变量名见下文「最小必填」。
 
 最小必填：
 
@@ -250,6 +253,7 @@ volta run npm run dev
 
 可选扩展：
 
+- `GAMEFORGE_CLIENT_ORIGIN`（前端访问来源，默认 `http://localhost:5173`）
 - `CHROMA_*`（当前仅预留）
 - `REDIS_*`（当前仅预留）
 - `OFFICIAL_DOCS_URL`
@@ -261,23 +265,34 @@ volta run npm run dev
 ## 9. 启动与复现步骤（Windows + PowerShell）
 
 ```powershell
-# 1) 安装依赖
+# 1) 安装依赖（两个子项目各装一次）
+cd gameforge-agent
+npm install
+cd ..\gameforge-client
 npm install
 
 # 2) 生成 Prisma Client
-npm run prisma:generate -w gameforge-agent
+cd ..\gameforge-agent
+npm run prisma:generate
 
 # 3) 推送数据库 schema
-npm run prisma:push -w gameforge-agent
+npm run prisma:push
 
 # 4) 构建/增量更新向量索引
 npm run ingest
 
-# 5) 启动前后端
+# 5) 启动后端（保留此终端）
 npm run dev
 ```
 
-如果本地 Node 不是 20，可改用：
+另开一个终端启动前端：
+
+```powershell
+cd gameforge-client
+npm run dev
+```
+
+如果本地 Node 不是 20，可在进入 `gameforge-agent` 或 `gameforge-client` 后使用：
 
 ```powershell
 volta run npm run dev
@@ -305,12 +320,11 @@ volta run npm run dev
 - 创建 Session 后立即初始化 `storage/{sessionId}` 子目录
 - `Session.rootDir` 记录实际根路径
 
-### 11.2 `.env` 路径统一问题
+### 11.2 `.env` 路径
 
-- 脚本在 `gameforge-agent` 目录执行时，容易读不到根目录 `.env`
-- 已通过脚本与配置双重方式解决：
-  - Prisma 脚本显式 `dotenv -e ../.env -- ...`
-  - `gameforge-agent/src/config.ts` 启动时优先读取根 `.env`
+- Agent 与 Prisma 脚本统一使用 **`gameforge-agent/.env`**
+- Prisma：`package.json` 中 `dotenv -e .env -- prisma ...`（在 `gameforge-agent` 目录执行）
+- 运行时：`gameforge-agent/src/config.ts` 只读 `gameforge-agent/.env`
 
 ### 11.3 Node 版本兼容
 

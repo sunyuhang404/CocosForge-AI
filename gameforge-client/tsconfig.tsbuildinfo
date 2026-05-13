@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/types.ts","./src/lib/codegenlabels.ts","./src/lib/markdown.ts","./src/services/api.ts","./src/services/sse.ts","./src/stores/chat.ts","./src/app.vue","./src/components/chat/chatpanel.vue","./src/components/chat/dynamicform.vue","./src/components/preview/previewpanel.vue","./src/components/preview/previewtoolbar.vue"],"version":"5.9.3"}

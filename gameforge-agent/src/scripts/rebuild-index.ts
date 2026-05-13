@@ -1,4 +1,4 @@
-import "dotenv/config";
+import "../config.js";
 import { rebuildVectorIndex } from "../services/ingest.js";
 
 // 传入 --force 时强制重建向量索引。

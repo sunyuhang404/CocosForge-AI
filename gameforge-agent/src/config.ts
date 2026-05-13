@@ -1,26 +1,20 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { existsSync } from "node:fs";
 import dotenv from "dotenv";
 
 const currentFile = fileURLToPath(import.meta.url);
 const serverSrcDir = path.dirname(currentFile);
 const serverDir = path.resolve(serverSrcDir, "..");
 const workspaceRoot = path.resolve(serverDir, "..");
-const rootEnvPath = path.resolve(workspaceRoot, ".env");
 const serverEnvPath = path.resolve(serverDir, ".env");
 
-// 优先加载工作区根目录 .env，不存在时回退到 gameforge-agent/.env。
-if (existsSync(rootEnvPath)) {
-  dotenv.config({ path: rootEnvPath });
-} else if (existsSync(serverEnvPath)) {
-  dotenv.config({ path: serverEnvPath });
-}
+dotenv.config({ path: serverEnvPath });
 
 /** 服务端运行配置与外部依赖连接参数。 */
 export const config = {
   port: Number(process.env.PORT ?? 3000),
-  clientOrigin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
+  gameforgeClientOrigin:
+    process.env.GAMEFORGE_CLIENT_ORIGIN ?? "http://localhost:5173",
   databaseUrl:
     process.env.DATABASE_URL ??
     "postgresql://admin:your_password@10.5.32.22:5432/game_forge",

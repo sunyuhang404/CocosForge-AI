@@ -1,6 +1,6 @@
 # 与 gameforge-agent/src/config.ts 对齐；引入 JDBC + Redis + RocketMQ。
 # JDBC 使用 POSTGRES_*（与 Node 一致）；也可用 SPRING_DATASOURCE_* 覆盖标准属性。
-# 启动时：com.gameforge.autoconfigure.PostgresDatabaseBootstrapAutoConfiguration（早于 DataSource）通过 @Value 注入 JDBC 配置并自动 CREATE DATABASE；表结构由 Flyway（classpath:db/migration，构建时从 init_schema.sql 复制）。
+# 启动时：com.gameforge.autoconfigure.PostgresDatabaseBootstrapAutoConfiguration（早于 DataSource）通过 @Value 注入 JDBC 配置并自动 CREATE DATABASE；表结构由 Flyway（classpath:db/migration，源文件 src/main/resources/db/migration/V1__init_schema.sql）。
 # 跳过自动建库：gameforge.database.skip-auto-create-database=true（或 GAMEFORGE_SKIP_AUTO_CREATE_DB=true）。
 # Node 使用 PORT；Spring Boot 使用 SERVER_PORT（默认 8080）。
 
@@ -41,7 +41,7 @@ gameforge:
   database:
     skip-auto-create-database: ${GAMEFORGE_SKIP_AUTO_CREATE_DB:false}
     maintenance-database: ${POSTGRES_MAINTENANCE_DB:postgres}
-  client-origin: ${CLIENT_ORIGIN:http://localhost:5173}
+  gameforge-client-origin: ${GAMEFORGE_CLIENT_ORIGIN:http://localhost:5173}
   tz: ${TZ:Asia/Shanghai}
   database-url: ${DATABASE_URL:postgresql://admin:your_password@10.5.32.22:5432/game_forge}
   qwen:
