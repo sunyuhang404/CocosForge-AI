@@ -12,10 +12,10 @@
   </parent>
 
   <groupId>com.gameforge</groupId>
-  <artifactId>gameforge</artifactId>
+  <artifactId>gameforge-server</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>gameforge</name>
-  <description>gameforge Spring module — config parity with gameforge-agent / Node</description>
+  <name>gameforge-server</name>
+  <description>gameforge-server Spring Boot module — config parity with gameforge-agent / Node</description>
 
   <properties>
     <java.version>25</java.version>
@@ -75,7 +75,7 @@
               <rules>
                 <requireJavaVersion>
                   <version>[25,)</version>
-                  <message>gameforge 模块需要 JDK 25（与 java.version 一致）；当前 Maven 使用的 Java 过旧。请将 JAVA_HOME 指向 JDK 25，或在 gameforge 目录执行 .\mvn-jdk25.ps1（或 mvn-jdk25.cmd）代替 mvn。也可用环境变量 GAMEFORGE_JDK_HOME 覆盖 JDK 路径。</message>
+                  <message>gameforge-server 模块需要 JDK 25（与 java.version 一致）；当前 Maven 使用的 Java 过旧。请将 JAVA_HOME 指向 JDK 25，或在 gameforge-server 目录执行 .\mvn-jdk25.ps1（或 mvn-jdk25.cmd）代替 mvn。也可用环境变量 GAMEFORGE_JDK_HOME 覆盖 JDK 路径。</message>
                 </requireJavaVersion>
               </rules>
             </configuration>

@@ -26,7 +26,7 @@
 
 - Node 依赖各自独立：`gameforge-client/package.json`、`gameforge-agent/package.json`（分别在对应目录安装依赖）
 - 其他目录：
-  - `gameforge/`（Spring Boot）
+  - `gameforge-server/`（Spring Boot）
   - `gameforge-agent/`
   - `gameforge-client/`
 
@@ -67,7 +67,7 @@ volta run npm run dev
 ```text
 /
 ├─ gameforge-client/            # 前端 UI 与状态管理
-├─ gameforge/                   # Spring Boot（与 Agent 配置对齐）
+├─ gameforge-server/            # Spring Boot（与 Agent 配置对齐）
 ├─ gameforge-agent/             # Agent 服务（Koa：API、编排、RAG、持久化）
 ├─ storage/                     # 会话产物根目录
 │  └─ {sessionId}/
