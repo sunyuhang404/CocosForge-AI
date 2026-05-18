@@ -1,6 +1,6 @@
 import type { MessageItem, SessionItem } from "../types";
 
-const baseUrl = "http://localhost:3000";
+const baseUrl = "http://localhost:8080";
 
 export async function createSession(name?: string): Promise<SessionItem> {
   const response = await fetch(`${baseUrl}/api/sessions`, {

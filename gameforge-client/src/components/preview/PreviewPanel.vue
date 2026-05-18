@@ -33,6 +33,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import PreviewToolbar from "./PreviewToolbar.vue";
+import { apiBaseUrl } from "../../services/api";
 
 const props = defineProps<{
   visible: boolean;
@@ -63,7 +64,7 @@ function openFullscreen() {
 
 function downloadCode() {
   if (!props.previewUrl || !props.sessionId) return;
-  const url = `http://localhost:3000/api/sessions/${props.sessionId}/assets/code/latest`;
+  const url = `${apiBaseUrl}/api/sessions/${props.sessionId}/assets/code/latest`;
   window.open(url, "_blank");
 }
 
