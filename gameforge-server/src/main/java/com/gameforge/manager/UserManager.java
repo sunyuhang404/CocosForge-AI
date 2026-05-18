@@ -1,6 +1,7 @@
 package com.gameforge.manager;
 
 import com.gameforge.common.exception.InvalidCredentialsException;
+import com.gameforge.common.exception.InvalidRefreshTokenException;
 import com.gameforge.common.exception.UserAlreadyExistsException;
 import com.gameforge.model.entity.User;
 import com.gameforge.model.request.LoginRequest;
@@ -52,6 +53,14 @@ public class UserManager {
       throw new InvalidCredentialsException();
     }
     return user;
+  }
+
+  @Transactional(readOnly = true)
+  public User requireUser(Long userId) {
+    if (userId == null) {
+      throw new InvalidRefreshTokenException();
+    }
+    return userService.findById(userId).orElseThrow(InvalidRefreshTokenException::new);
   }
 
   private String normalizeEmail(String email) {

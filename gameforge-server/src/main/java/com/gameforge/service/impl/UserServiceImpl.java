@@ -15,6 +15,11 @@ public class UserServiceImpl implements UserService {
   private UserMapper userMapper;
 
   @Override
+  public Optional<User> findById(Long id) {
+    return Optional.ofNullable(userMapper.selectById(id));
+  }
+
+  @Override
   public Optional<User> findByEmail(String email) {
     User user =
         userMapper.selectOne(Wrappers.<User>lambdaQuery().eq(User::getEmail, email));

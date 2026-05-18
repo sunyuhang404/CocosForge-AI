@@ -3,7 +3,7 @@ package com.gameforge.common.enums;
 public enum ResultCode {
   SUCCESS(0, "success"),
   FAILURE(1, "failure"),
-  UNAUTHORIZED(403, "unauthorized");
+  UNAUTHORIZED(401, "unauthorized");
 
   private final Integer code;
   private final String message;

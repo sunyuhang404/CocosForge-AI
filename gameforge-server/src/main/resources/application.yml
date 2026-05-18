@@ -41,6 +41,15 @@ gameforge:
   database:
     skip-auto-create-database: ${GAMEFORGE_SKIP_AUTO_CREATE_DB:false}
     maintenance-database: ${POSTGRES_MAINTENANCE_DB:postgres}
+  auth:
+    refresh-token-ttl: ${GAMEFORGE_REFRESH_TOKEN_TTL:P7D}
+    permit-paths:
+      - /api/users/login
+      - /api/users/register
+      - /api/users/refresh-token
+    jwt:
+      secret: ${GAMEFORGE_JWT_SECRET:dev-only-change-me-gameforge-jwt-secret-32-bytes-minimum}
+      access-token-ttl: ${GAMEFORGE_ACCESS_TOKEN_TTL:PT24H}
   gameforge-client-origin: ${GAMEFORGE_CLIENT_ORIGIN:http://localhost:5173}
   tz: ${TZ:Asia/Shanghai}
   database-url: ${DATABASE_URL:postgresql://admin:your_password@10.5.32.22:5432/game_forge}
