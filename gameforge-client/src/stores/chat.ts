@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { DynamicFormSchema, MessageItem, SessionItem } from "../types";
-import { codegenProgressLabel } from "../lib/codegenLabels";
-import { createSession, fetchSessionMessages, fetchSessions } from "../api/api";
-import { streamChat } from "../api/sse";
+import { createSession, fetchSessionMessages, fetchSessions } from "@/api/api";
+import { streamChat } from "@/api/sse";
+import { codegenProgressLabel } from "@/lib/codegenLabels";
+import type { DynamicFormSchema, MessageItem, SessionItem } from "@/types";
 
 export const useChatStore = defineStore("chat", () => {
   const sessions = ref<SessionItem[]>([]);
@@ -23,12 +23,29 @@ export const useChatStore = defineStore("chat", () => {
     sessions.value.find((item) => item.id === currentSessionId.value) ?? null
   );
 
-  async function refreshSessions() {
+  async function refreshSessions(preferredSessionId = "") {
     sessions.value = await fetchSessions();
-    if (!currentSessionId.value && sessions.value.length > 0) {
-      currentSessionId.value = sessions.value[0].id;
-      await loadMessages(currentSessionId.value);
+    if (sessions.value.length === 0) {
+      clearCurrentSession();
+      return;
     }
+
+    const hasPreferredSession = sessions.value.some(
+      (item) => item.id === preferredSessionId,
+    );
+    const hasCurrentSession = sessions.value.some(
+      (item) => item.id === currentSessionId.value,
+    );
+    const nextSessionId = hasPreferredSession
+      ? preferredSessionId
+      : hasCurrentSession
+      ? currentSessionId.value
+      : sessions.value[0].id;
+
+    if (nextSessionId !== currentSessionId.value) {
+      currentSessionId.value = nextSessionId;
+    }
+    await loadMessages(nextSessionId);
   }
 
   async function createNewSession(name?: string) {
@@ -139,6 +156,18 @@ export const useChatStore = defineStore("chat", () => {
     statusText.value = "已重置";
   }
 
+  function clearCurrentSession() {
+    currentSessionId.value = "";
+    messages.value = [];
+    planningText.value = "";
+    dynamicForm.value = null;
+    previewUrl.value = "";
+    codegenProgressPercent.value = null;
+    codegenProgressDetail.value = "";
+    loading.value = false;
+    statusText.value = "就绪";
+  }
+
   return {
     sessions,
     currentSessionId,
@@ -155,6 +184,7 @@ export const useChatStore = defineStore("chat", () => {
     createNewSession,
     switchSession,
     sendMessage,
-    resetConversation
+    resetConversation,
+    clearCurrentSession
   };
 });

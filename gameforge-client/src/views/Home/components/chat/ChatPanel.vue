@@ -118,8 +118,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import type { MessageItem, DynamicFormSchema } from "../../../../types";
-import { renderMarkdown } from "../../../../lib/markdown";
+import { renderMarkdown } from "@/lib/markdown";
+import type { MessageItem, DynamicFormSchema } from "@/types";
 import DynamicForm from "./DynamicForm.vue";
 
 const props = withDefaults(

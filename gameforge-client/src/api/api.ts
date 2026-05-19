@@ -1,4 +1,4 @@
-import type { MessageItem, SessionItem } from "../types";
+import type { MessageItem, SessionItem } from "@/types";
 import { getAccessToken } from "./authSession";
 
 const baseUrl = "http://localhost:8080";

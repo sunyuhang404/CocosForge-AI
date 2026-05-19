@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
-import type { DynamicFormSchema } from "../../../../types";
+import type { DynamicFormSchema } from "@/types";
 
 const props = defineProps<{
   form: DynamicFormSchema;

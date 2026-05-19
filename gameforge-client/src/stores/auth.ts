@@ -1,13 +1,13 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import { apiRequest } from "../api/api";
+import { apiRequest } from "@/api/api";
 import {
   type AuthSession,
   type UserInfo,
   clearAuthSession,
   getAuthSession,
   saveAuthSession,
-} from "../api/authSession";
+} from "@/api/authSession";
 
 type LoginPayload = {
   email: string;

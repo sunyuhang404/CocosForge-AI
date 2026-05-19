@@ -1,7 +1,7 @@
 import { ElButton, ElForm, ElFormItem, ElInput, ElMessage } from "element-plus";
 import { defineComponent, reactive, ref } from "vue";
 import type { PropType } from "vue";
-import { useAuthStore } from "../../stores/auth";
+import { useAuthStore } from "@/stores/auth";
 
 export default defineComponent({
   props: {

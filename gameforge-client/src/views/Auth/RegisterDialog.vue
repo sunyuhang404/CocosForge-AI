@@ -71,8 +71,8 @@
 <script setup lang="ts">
 import { ElMessage } from "element-plus";
 import { onMounted, onUnmounted, reactive, ref } from "vue";
-import { Login } from "../../components/Modal";
-import { useAuthStore } from "../../stores/auth";
+import { Login } from "@/components/Modal";
+import { useAuthStore } from "@/stores/auth";
 import {
   type RegisterDialogOptions,
   registerRegisterDialogController,

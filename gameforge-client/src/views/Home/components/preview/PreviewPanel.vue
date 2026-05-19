@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import PreviewToolbar from "./PreviewToolbar.vue";
-import { apiBaseUrl } from "../../../../api/api";
+import { apiBaseUrl } from "@/api/api";
 
 const props = defineProps<{
   visible: boolean;
