@@ -1,41 +1,41 @@
 <template>
-  <section class="mx-auto flex h-full min-h-0 w-full max-w-[800px] flex-col px-0">
-    <div class="mb-3 shrink-0 flex items-center justify-between">
-      <span class="text-sm font-semibold text-[#111827]">消息</span>
-      <span class="text-xs text-[#9ca3af]">共 {{ messageCount }} 条</span>
+  <section class="chat-panel mx-auto flex h-full min-h-0 w-full max-w-[800px] flex-col px-0">
+    <div class="chat-panel-header mb-3 shrink-0 flex items-center justify-between">
+      <span class="chat-panel-title text-sm font-semibold text-[#111827]">消息</span>
+      <span class="chat-panel-count text-xs text-[#9ca3af]">共 {{ messageCount }} 条</span>
     </div>
 
     <div
       ref="messagesContainerRef"
-      class="min-h-0 flex-1 space-y-3 overflow-y-auto pb-3 pr-1"
+      class="chat-panel-messages min-h-0 flex-1 space-y-3 overflow-y-auto pb-3 pr-1"
       @scroll="onMessagesScroll"
     >
       <div
         v-for="(message, index) in props.messages"
         :key="index"
-        class="flex"
-        :class="message.role === 'user' ? 'justify-end' : 'justify-start'"
+        class="chat-message-row flex"
+        :class="message.role === 'user' ? 'chat-message-row--user justify-end' : 'chat-message-row--assistant justify-start'"
       >
         <div
-          class="max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-[0_2px_10px_rgba(15,23,42,0.04)]"
+          class="chat-message-bubble max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-6 shadow-[0_2px_10px_rgba(15,23,42,0.04)]"
           :class="
             message.role === 'user'
-              ? 'bg-[#e9efff] text-[#1e3a8a]'
-              : 'border border-[#e5e7eb] bg-white text-[#111827]'
+              ? 'chat-message-bubble--user bg-[#e9efff] text-[#1e3a8a]'
+              : 'chat-message-bubble--assistant border border-[#e5e7eb] bg-white text-[#111827]'
           "
         >
           <div
-            class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]"
+            class="chat-message-role mb-1 text-[11px] font-semibold uppercase tracking-wide text-[#94a3b8]"
           >
             {{ message.role === "user" ? "你" : "助手" }}
           </div>
           <pre
             v-if="message.role === 'user'"
-            class="m-0 whitespace-pre-wrap font-sans"
+            class="chat-message-text m-0 whitespace-pre-wrap font-sans"
           >{{ message.content }}</pre>
           <div
             v-else
-            class="markdown-content"
+            class="chat-message-markdown markdown-content"
             v-html="renderAssistantMarkdown(message.content)"
           />
         </div>
@@ -49,40 +49,40 @@
       />
     </div>
 
-    <div class="mt-3 shrink-0">
-      <div class="doubao-composer">
+    <div class="chat-panel-composer-wrap mt-3 shrink-0">
+      <div class="chat-panel-composer doubao-composer">
         <el-input
           v-model="input"
-          class="doubao-input"
+          class="chat-panel-input doubao-input"
           type="textarea"
           :rows="3"
           resize="none"
           placeholder="发消息..."
           @keydown.ctrl.enter.prevent="onSend"
         />
-        <div class="doubao-tools">
-          <button class="tool-icon" type="button" aria-label="更多输入">
+        <div class="chat-panel-tools doubao-tools">
+          <button class="chat-panel-tool-icon tool-icon" type="button" aria-label="更多输入">
             +
           </button>
           <button
-            class="tool-btn"
+            class="chat-panel-preview-button tool-btn"
             type="button"
             @click="emit('togglePreview')"
           >
             预览{{ props.previewVisible ? "收起" : "展开" }}
-            <span v-if="props.pendingPreview" class="tool-badge"> 新 </span>
+            <span v-if="props.pendingPreview" class="chat-panel-tool-badge tool-badge"> 新 </span>
           </button>
           <button
-            class="tool-btn"
+            class="chat-panel-clear-button tool-btn"
             type="button"
             @click="emit('resetConversation')"
           >
             清空
           </button>
-          <button class="tool-btn" type="button">更多</button>
+          <button class="chat-panel-more-button tool-btn" type="button">更多</button>
           <div
             v-if="props.loading"
-            class="codegen-progress-inline"
+            class="chat-panel-progress codegen-progress-inline"
           >
             <template v-if="props.codegenProgressPercent !== null">
               <el-progress
@@ -90,20 +90,20 @@
                 :stroke-width="6"
                 striped
                 striped-flow
-                class="codegen-progress-bar"
+                class="chat-panel-progress-bar codegen-progress-bar"
               />
               <span
                 v-if="props.codegenProgressDetail"
-                class="codegen-progress-meta"
+                class="chat-panel-progress-meta codegen-progress-meta"
               >{{ props.codegenProgressDetail }}</span>
             </template>
             <span
               v-else
-              class="codegen-status-fallback"
+              class="chat-panel-status codegen-status-fallback"
             >{{ props.statusText }}</span>
           </div>
           <button
-            class="send-circle"
+            class="chat-panel-send-button send-circle"
             type="button"
             :disabled="props.loading"
             @click="onSend"
@@ -118,8 +118,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from "vue";
-import type { MessageItem, DynamicFormSchema } from "../../types";
-import { renderMarkdown } from "../../lib/markdown";
+import type { MessageItem, DynamicFormSchema } from "../../../../types";
+import { renderMarkdown } from "../../../../lib/markdown";
 import DynamicForm from "./DynamicForm.vue";
 
 const props = withDefaults(

@@ -1,4 +1,4 @@
-import { apiBaseUrl } from "./api";
+import { apiBaseUrl, getAuthHeaders } from "./api";
 
 export type SseHandlers = {
   onEvent: (event: string, payload: unknown) => void;
@@ -11,9 +11,13 @@ export async function streamChat(
 ): Promise<void> {
   const response = await fetch(`${apiBaseUrl}/api/chat/stream`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
     body: JSON.stringify(payload)
   });
+  if (response.status === 401) {
+    handlers.onError?.("请登录后继续");
+    return;
+  }
   if (!response.ok || !response.body) {
     handlers.onError?.("SSE 连接失败");
     return;

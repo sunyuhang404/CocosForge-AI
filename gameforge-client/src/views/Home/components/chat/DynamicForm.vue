@@ -1,9 +1,9 @@
 <template>
-  <div class="rounded-2xl border border-[#dbe6ff] bg-[#f7f9ff] p-4">
-    <h4 class="m-0 text-sm font-semibold text-[#1e3a8a]">{{ props.form.title }}</h4>
-    <p class="mb-3 mt-1 text-xs text-[#64748b]">{{ props.form.description }}</p>
+  <div class="dynamic-form rounded-2xl border border-[#dbe6ff] bg-[#f7f9ff] p-4">
+    <h4 class="dynamic-form-title m-0 text-sm font-semibold text-[#1e3a8a]">{{ props.form.title }}</h4>
+    <p class="dynamic-form-description mb-3 mt-1 text-xs text-[#64748b]">{{ props.form.description }}</p>
     <el-form label-position="top" @submit.prevent>
-      <el-form-item v-for="field in props.form.fields" :key="field.key" :label="field.label" class="mb-2">
+      <el-form-item v-for="field in props.form.fields" :key="field.key" :label="field.label" class="dynamic-form-field mb-2">
         <el-input
           v-if="field.type === 'text'"
           v-model="model[field.key]"
@@ -27,7 +27,7 @@
 
 <script setup lang="ts">
 import { reactive } from "vue";
-import type { DynamicFormSchema } from "../../types";
+import type { DynamicFormSchema } from "../../../../types";
 
 const props = defineProps<{
   form: DynamicFormSchema;

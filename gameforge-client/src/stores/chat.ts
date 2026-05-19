@@ -2,8 +2,8 @@ import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import type { DynamicFormSchema, MessageItem, SessionItem } from "../types";
 import { codegenProgressLabel } from "../lib/codegenLabels";
-import { createSession, fetchSessionMessages, fetchSessions } from "../services/api";
-import { streamChat } from "../services/sse";
+import { createSession, fetchSessionMessages, fetchSessions } from "../api/api";
+import { streamChat } from "../api/sse";
 
 export const useChatStore = defineStore("chat", () => {
   const sessions = ref<SessionItem[]>([]);

@@ -1,7 +1,7 @@
 <template>
   <section
-    class="fixed right-0 top-0 z-50 h-screen w-[min(760px,92vw)] border-l border-[#e8ebf2] bg-[#f8faff] shadow-[-18px_0_40px_rgba(15,23,42,0.12)] transition-transform duration-300"
-    :class="props.visible ? 'translate-x-0' : 'translate-x-full'"
+    class="preview-panel fixed right-0 top-0 z-50 h-screen w-[min(760px,92vw)] border-l border-[#e8ebf2] bg-[#f8faff] shadow-[-18px_0_40px_rgba(15,23,42,0.12)] transition-transform duration-300"
+    :class="props.visible ? 'preview-panel--visible translate-x-0' : 'preview-panel--hidden translate-x-full'"
   >
     <PreviewToolbar
       :has-preview="resolvedHasPreview"
@@ -11,18 +11,18 @@
       @fullscreen="openFullscreen"
       @close="emit('close')"
     />
-    <div class="relative h-[calc(100%-57px)] overflow-hidden p-3">
+    <div class="preview-panel-body relative h-[calc(100%-57px)] overflow-hidden p-3">
       <div
         v-if="!resolvedHasPreview"
-        class="flex h-full items-center justify-center rounded-2xl border border-dashed border-[#d6ddf0] bg-white text-sm text-[#6b7280]"
+        class="preview-panel-empty flex h-full items-center justify-center rounded-2xl border border-dashed border-[#d6ddf0] bg-white text-sm text-[#6b7280]"
       >
         等待生成预览...
       </div>
       <iframe
         v-else
         ref="iframeRef"
-        class="h-full w-full rounded-2xl border border-[#e5e7eb] bg-white transition-all duration-300"
-        :class="loading ? 'blur-sm' : 'blur-0'"
+        class="preview-panel-frame h-full w-full rounded-2xl border border-[#e5e7eb] bg-white transition-all duration-300"
+        :class="loading ? 'preview-panel-frame--loading blur-sm' : 'preview-panel-frame--ready blur-0'"
         :src="activeUrl || props.previewUrl"
         @load="onLoad"
       />
@@ -33,7 +33,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import PreviewToolbar from "./PreviewToolbar.vue";
-import { apiBaseUrl } from "../../services/api";
+import { apiBaseUrl } from "../../../../api/api";
 
 const props = defineProps<{
   visible: boolean;
